@@ -176,10 +176,20 @@ export default function Home() {
       scale: 2,
       useCORS: true,
     });
+    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+    if (!blob) return;
+    const file = new File([blob], filename, { type: 'image/png' });
+    if (navigator.canShare?.({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file] });
+        return;
+      } catch { /* user cancelled or failed, fall through to download */ }
+    }
     const link = document.createElement('a');
     link.download = filename;
-    link.href = canvas.toDataURL('image/png');
+    link.href = URL.createObjectURL(blob);
     link.click();
+    URL.revokeObjectURL(link.href);
   }, []);
 
   const saveScreenshot = useCallback(() => saveRefScreenshot(resultRef, 'SBTI-结果.png'), [saveRefScreenshot]);
