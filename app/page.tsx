@@ -170,26 +170,37 @@ export default function Home() {
 
   const saveRefScreenshot = useCallback(async (ref: React.RefObject<HTMLDivElement | null>, filename: string) => {
     if (!ref.current) return;
-    const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(ref.current, {
-      backgroundColor: '#f6faf6',
-      scale: 2,
-      useCORS: true,
-    });
-    const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-    if (!blob) return;
-    const file = new File([blob], filename, { type: 'image/png' });
-    if (navigator.canShare?.({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file] });
-        return;
-      } catch { /* user cancelled or failed, fall through to download */ }
+    try {
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(ref.current, {
+        backgroundColor: '#f6faf6',
+        scale: 2,
+        useCORS: true,
+      });
+      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) { alert('图片生成失败，请尝试截图'); return; }
+      const file = new File([blob], filename, { type: 'image/png' });
+      if (navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file] });
+          return;
+        } catch { /* user cancelled, fall through */ }
+      }
+      // Fallback: open image in new tab (works better on mobile than download link)
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, '_blank');
+      if (!w) {
+        // popup blocked, try download link
+        const link = document.createElement('a');
+        link.download = filename;
+        link.href = url;
+        link.click();
+      }
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    } catch (e) {
+      alert('图片生成失败，请长按页面截图保存');
+      console.error(e);
     }
-    const link = document.createElement('a');
-    link.download = filename;
-    link.href = URL.createObjectURL(blob);
-    link.click();
-    URL.revokeObjectURL(link.href);
   }, []);
 
   const saveScreenshot = useCallback(() => saveRefScreenshot(resultRef, 'SBTI-结果.png'), [saveRefScreenshot]);
