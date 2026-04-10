@@ -4,9 +4,12 @@ import { useState, useCallback, useMemo, useRef } from 'react';
 import { questions, specialQuestions, DRUNK_TRIGGER_QUESTION_ID } from './data/questions';
 import { dimensionMeta, dimensionOrder, DIM_EXPLANATIONS } from './data/dimensions';
 import { TYPE_LIBRARY, TYPE_IMAGES, NORMAL_TYPES } from './data/types';
+import { getPairingText } from './data/pairings';
 import type { Question } from './data/questions';
 
-type Screen = 'intro' | 'test' | 'result';
+type Screen = 'intro' | 'test' | 'result' | 'pairing';
+
+const ALL_TYPE_CODES = Object.keys(TYPE_LIBRARY);
 
 function shuffle<T>(array: T[]): T[] {
   const arr = [...array];
@@ -97,6 +100,8 @@ export default function Home() {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [shuffledQuestions, setShuffledQuestions] = useState<Question[]>([]);
   const resultRef = useRef<HTMLDivElement>(null);
+  const [pairA, setPairA] = useState('');
+  const [pairB, setPairB] = useState('');
 
   const startTest = useCallback(() => {
     setAnswers({});
@@ -150,6 +155,18 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  const goToPairing = useCallback(() => {
+    setPairA('');
+    setPairB('');
+    setScreen('pairing');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
+
+  const pairingText = useMemo(() => {
+    if (!pairA || !pairB) return null;
+    return getPairingText(pairA, pairB);
+  }, [pairA, pairB]);
+
   const saveScreenshot = useCallback(async () => {
     if (!resultRef.current) return;
     const html2canvas = (await import('html2canvas')).default;
@@ -187,6 +204,7 @@ export default function Home() {
             <h1>MBTI已经过时，SBTI来了。</h1>
             <div className="hero-actions hero-actions-single">
               <button className="btn-primary" onClick={startTest}>开始测试</button>
+              <button className="btn-secondary" onClick={goToPairing}>性格配对</button>
             </div>
             <div className="credits">
               <span>
@@ -254,6 +272,86 @@ export default function Home() {
                   提交并查看结果
                 </button>
               </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Pairing Screen */}
+      {screen === 'pairing' && (
+        <section>
+          <div className="pairing-wrap card">
+            <h2 className="pairing-title">性格配对</h2>
+            <p className="pairing-subtitle">选两个性格，看看会发生什么。</p>
+
+            <div className="pairing-selectors">
+              <div className="pairing-select-group">
+                <label className="pairing-label">性格 A</label>
+                <div className="pairing-grid">
+                  {ALL_TYPE_CODES.map(code => (
+                    <button
+                      key={code}
+                      className={`pairing-chip${pairA === code ? ' active' : ''}`}
+                      onClick={() => setPairA(prev => prev === code ? '' : code)}
+                    >
+                      {TYPE_IMAGES[code] && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img className="pairing-chip-img" src={TYPE_IMAGES[code]} alt="" />
+                      )}
+                      <span className="pairing-chip-code">{code}</span>
+                      <span className="pairing-chip-cn">{TYPE_LIBRARY[code].cn}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pairing-vs">×</div>
+
+              <div className="pairing-select-group">
+                <label className="pairing-label">性格 B</label>
+                <div className="pairing-grid">
+                  {ALL_TYPE_CODES.map(code => (
+                    <button
+                      key={code}
+                      className={`pairing-chip${pairB === code ? ' active' : ''}`}
+                      onClick={() => setPairB(prev => prev === code ? '' : code)}
+                    >
+                      {TYPE_IMAGES[code] && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img className="pairing-chip-img" src={TYPE_IMAGES[code]} alt="" />
+                      )}
+                      <span className="pairing-chip-code">{code}</span>
+                      <span className="pairing-chip-cn">{TYPE_LIBRARY[code].cn}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {pairA && pairB && pairingText && (
+              <div className="pairing-result">
+                <div className="pairing-result-header">
+                  <div className="pairing-result-avatars">
+                    {TYPE_IMAGES[pairA] && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="pairing-avatar" src={TYPE_IMAGES[pairA]} alt={pairA} />
+                    )}
+                    <span className="pairing-result-vs">×</span>
+                    {TYPE_IMAGES[pairB] && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img className="pairing-avatar" src={TYPE_IMAGES[pairB]} alt={pairB} />
+                    )}
+                  </div>
+                  <div className="pairing-result-names">
+                    {pairA}（{TYPE_LIBRARY[pairA].cn}） × {pairB}（{TYPE_LIBRARY[pairB].cn}）
+                  </div>
+                </div>
+                <p className="pairing-result-text">{pairingText}</p>
+              </div>
+            )}
+
+            <div className="pairing-actions">
+              <button className="btn-secondary" onClick={goHome}>回到首页</button>
             </div>
           </div>
         </section>

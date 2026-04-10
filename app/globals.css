@@ -435,6 +435,141 @@ button:disabled { cursor: not-allowed; opacity: 0.55; transform: none; }
   flex-direction: column;
 }
 
+/* Pairing */
+.pairing-wrap {
+  margin-top: 22px;
+  padding: 22px;
+}
+.pairing-title {
+  font-size: clamp(24px, 4vw, 36px);
+  margin: 0 0 6px;
+  letter-spacing: -0.02em;
+}
+.pairing-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 0 0 24px;
+}
+.pairing-selectors {
+  display: grid;
+  gap: 20px;
+}
+.pairing-vs {
+  text-align: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--accent-strong);
+  line-height: 1;
+}
+.pairing-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.pairing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+.pairing-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  transition: border-color .16s, background .16s, transform .16s;
+  cursor: pointer;
+  font: inherit;
+}
+.pairing-chip:hover {
+  border-color: #bcd0c1;
+  background: #f8fcf9;
+  transform: translateY(-1px);
+}
+.pairing-chip.active {
+  border-color: var(--accent-strong);
+  background: var(--soft);
+  box-shadow: 0 0 0 2px var(--accent-strong);
+}
+.pairing-chip-img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f0f5f1;
+}
+.pairing-chip-code {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.2;
+}
+.pairing-chip-cn {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.2;
+}
+.pairing-result {
+  margin-top: 24px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 20px;
+  background: linear-gradient(180deg, #ffffff, #fbfdfb);
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.pairing-result-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.pairing-result-avatars {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pairing-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--line);
+  background: #f0f5f1;
+}
+.pairing-result-vs {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent-strong);
+}
+.pairing-result-names {
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.4;
+}
+.pairing-result-text {
+  margin: 0;
+  color: #304034;
+  font-size: 15px;
+  line-height: 1.9;
+}
+.pairing-actions {
+  margin-top: 20px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 860px) {
   .result-top { grid-template-columns: 1fr; }
 }
