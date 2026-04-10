@@ -103,6 +103,7 @@ export default function Home() {
   const [pairA, setPairA] = useState('');
   const [pairB, setPairB] = useState('');
   const pairingRef = useRef<HTMLDivElement>(null);
+  const [previewImg, setPreviewImg] = useState<string | null>(null);
 
   const startTest = useCallback(() => {
     setAnswers({});
@@ -177,28 +178,19 @@ export default function Home() {
         scale: 2,
         useCORS: true,
       });
-      const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/png'));
-      if (!blob) { alert('图片生成失败，请尝试截图'); return; }
-      const file = new File([blob], filename, { type: 'image/png' });
-      if (navigator.canShare?.({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file] });
-          return;
-        } catch { /* user cancelled, fall through */ }
-      }
-      // Fallback: open image in new tab (works better on mobile than download link)
-      const url = URL.createObjectURL(blob);
-      const w = window.open(url, '_blank');
-      if (!w) {
-        // popup blocked, try download link
+      const dataUrl = canvas.toDataURL('image/png');
+      // Mobile: show image overlay for long-press save
+      const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        setPreviewImg(dataUrl);
+      } else {
         const link = document.createElement('a');
         link.download = filename;
-        link.href = url;
+        link.href = dataUrl;
         link.click();
       }
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
     } catch (e) {
-      alert('图片生成失败，请长按页面截图保存');
+      alert('图片生成失败，请截图保存');
       console.error(e);
     }
   }, []);
@@ -467,6 +459,18 @@ export default function Home() {
             </div>
           </div>
         </section>
+      )}
+
+      {/* Image Preview Overlay */}
+      {previewImg && (
+        <div className="preview-overlay" onClick={() => setPreviewImg(null)}>
+          <div className="preview-content" onClick={e => e.stopPropagation()}>
+            <p className="preview-hint">长按图片保存到相册</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className="preview-img" src={previewImg} alt="保存图片" />
+            <button className="btn-secondary preview-close" onClick={() => setPreviewImg(null)}>关闭</button>
+          </div>
+        </div>
       )}
     </div>
   );
