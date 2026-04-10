@@ -102,6 +102,7 @@ export default function Home() {
   const resultRef = useRef<HTMLDivElement>(null);
   const [pairA, setPairA] = useState('');
   const [pairB, setPairB] = useState('');
+  const pairingRef = useRef<HTMLDivElement>(null);
 
   const startTest = useCallback(() => {
     setAnswers({});
@@ -167,23 +168,24 @@ export default function Home() {
     return getPairingText(pairA, pairB);
   }, [pairA, pairB]);
 
-  const saveScreenshot = useCallback(async () => {
-    if (!resultRef.current) return;
+  const saveRefScreenshot = useCallback(async (ref: React.RefObject<HTMLDivElement | null>, filename: string) => {
+    if (!ref.current) return;
     const html2canvas = (await import('html2canvas')).default;
-    const canvas = await html2canvas(resultRef.current, {
+    const canvas = await html2canvas(ref.current, {
       backgroundColor: '#f6faf6',
       scale: 2,
       useCORS: true,
     });
     const link = document.createElement('a');
-    link.download = 'SBTI-结果.png';
+    link.download = filename;
     link.href = canvas.toDataURL('image/png');
     link.click();
   }, []);
 
-  const shareTest = useCallback(async () => {
-    if (!result) return;
-    const text = `我在SBTI人格测试中测出了「${result.finalType.code}（${result.finalType.cn}）」，你是什么？`;
+  const saveScreenshot = useCallback(() => saveRefScreenshot(resultRef, 'SBTI-结果.png'), [saveRefScreenshot]);
+  const savePairingScreenshot = useCallback(() => saveRefScreenshot(pairingRef, 'SBTI-配对.png'), [saveRefScreenshot]);
+
+  const shareText = useCallback(async (text: string) => {
     const url = 'https://sbti.ca';
     if (navigator.share) {
       try {
@@ -193,7 +195,17 @@ export default function Home() {
       await navigator.clipboard.writeText(`${text}\n${url}`);
       alert('已复制到剪贴板');
     }
-  }, [result]);
+  }, []);
+
+  const shareTest = useCallback(async () => {
+    if (!result) return;
+    shareText(`我在SBTI人格测试中测出了「${result.finalType.code}（${result.finalType.cn}）」，你是什么？`);
+  }, [result, shareText]);
+
+  const sharePairing = useCallback(async () => {
+    if (!pairA || !pairB) return;
+    shareText(`${pairA}（${TYPE_LIBRARY[pairA].cn}） × ${pairB}（${TYPE_LIBRARY[pairB].cn}）的配对结果太绝了，来看看你和谁最配！`);
+  }, [pairA, pairB, shareText]);
 
   return (
     <div className="shell">
@@ -329,7 +341,7 @@ export default function Home() {
             </div>
 
             {pairA && pairB && pairingText && (
-              <div className="pairing-result">
+              <div className="pairing-result" ref={pairingRef}>
                 <div className="pairing-result-header">
                   <div className="pairing-result-avatars">
                     {TYPE_IMAGES[pairA] && (
@@ -351,6 +363,12 @@ export default function Home() {
             )}
 
             <div className="pairing-actions">
+              {pairA && pairB && pairingText && (
+                <>
+                  <button className="btn-primary" onClick={sharePairing}>分享配对</button>
+                  <button className="btn-primary" onClick={savePairingScreenshot}>保存配对图片</button>
+                </>
+              )}
               <button className="btn-secondary" onClick={goHome}>回到首页</button>
             </div>
           </div>
